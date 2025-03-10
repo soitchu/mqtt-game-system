@@ -48,7 +48,7 @@ class Snake : public Game
 {
 public:
   Position foodPosition = {0, 0};
-  int direction = Direction::RIGHT;
+  Direction direction = Direction::RIGHT;
   int lastDirection = Direction::RIGHT;
   SnakeCircularArray snakePositions = SnakeCircularArray(0);
   int score = 0;
@@ -159,47 +159,52 @@ public:
 
   void buttonPressed(Player player, Button button)
   {
-    printf("%d\n", button);
     // We just have one player in this game, so we ignore the player parameter
+    unordered_map<Direction, Direction> directionClockWiseMap = {
+        {Direction::UP, Direction::RIGHT},
+        {Direction::DOWN, Direction::LEFT},
+        {Direction::LEFT, Direction::UP},
+        {Direction::RIGHT, Direction::DOWN},
+    };
+
+    unordered_map<Direction, Direction> directionCounterClockWiseMap = {
+        {Direction::UP, Direction::LEFT},
+        {Direction::DOWN, Direction::RIGHT},
+        {Direction::LEFT, Direction::DOWN},
+        {Direction::RIGHT, Direction::UP},
+    };
+
+    unordered_map<Direction, Direction> directionOppositeMap = {
+        {Direction::UP, Direction::DOWN},
+        {Direction::DOWN, Direction::UP},
+        {Direction::LEFT, Direction::RIGHT},
+        {Direction::RIGHT, Direction::LEFT},
+    };
 
     if (button == ACTION_1)
     {
-      if (direction == Direction::UP && lastDirection != Direction::RIGHT)
-      {
-        direction = Direction::LEFT;
-      }
-      else if (direction == Direction::DOWN && lastDirection != Direction::LEFT)
-      {
-        direction = Direction::RIGHT;
-      }
-      else if (direction == Direction::LEFT && lastDirection != Direction::UP)
-      {
-        direction = Direction::DOWN;
-      }
-      else if (direction == Direction::RIGHT && lastDirection != Direction::DOWN)
-      {
-        direction = Direction::UP;
-      }
-    }
 
-    if (button == ACTION_2)
+      Direction oppositeDirection = directionOppositeMap[direction];
+      Direction newDirection = directionCounterClockWiseMap[direction];
+
+      if (oppositeDirection == lastDirection)
+      {
+        return;
+      }
+
+      direction = newDirection;
+    }
+    else if (button == ACTION_2)
     {
-      if (direction == Direction::UP && lastDirection != Direction::LEFT)
+      Direction oppositeDirection = directionOppositeMap[direction];
+      Direction newDirection = directionClockWiseMap[direction];
+
+      if (oppositeDirection == lastDirection)
       {
-        direction = Direction::RIGHT;
+        return;
       }
-      else if (direction == Direction::DOWN && lastDirection != Direction::RIGHT)
-      {
-        direction = Direction::LEFT;
-      }
-      else if (direction == Direction::LEFT && lastDirection != Direction::DOWN)
-      {
-        direction = Direction::UP;
-      }
-      else if (direction == Direction::RIGHT && lastDirection != Direction::UP)
-      {
-        direction = Direction::DOWN;
-      }
+
+      direction = newDirection;
     }
   }
 };

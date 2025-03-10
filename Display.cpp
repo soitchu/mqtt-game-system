@@ -120,9 +120,4 @@ public:
   {
     return height;
   }
-
-  ~Display()
-  {
-    delete[] pixels;
-  }
 };

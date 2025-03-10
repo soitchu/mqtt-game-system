@@ -1,5 +1,6 @@
 #include "Display.cpp"
 #include "Font.cpp"
+#include <string>
 
 enum Button
 {
@@ -21,14 +22,15 @@ private:
   std::unordered_map<char, std::vector<int>> fonts = getFonts();
 
 public:
+  Display display = Display(0, 0);
+  bool isGameOver = false;
+
   virtual void buttonPressed(Player player, Button button) = 0;
   virtual void tick() = 0;
 
-  Display *display;
-
   Game(int height, int width)
   {
-    display = new Display(height, width);
+    display = Display(height, width);
   }
 
   void drawText(Position pos, std::string text)
@@ -48,7 +50,7 @@ public:
 
         if (fontPixel == 1)
         {
-          display->setPixel({x + fontX, y + fontY}, Color::WHITE);
+          display.setPixel({x + fontX, y + fontY}, Color::WHITE);
         }
       }
 
@@ -58,13 +60,13 @@ public:
 
   char *getDisplayBuffer()
   {
-    int width = display->getWidth();
-    int height = display->getHeight();
+    int width = display.getWidth();
+    int height = display.getHeight();
     char *pixels = new char[width * height + 1];
 
     for (int i = 0; i < height * width; i++)
     {
-      pixels[i] = 'a' + display->pixels[i];
+      pixels[i] = 'a' + display.pixels[i];
     }
 
     pixels[width * height] = '\0';
