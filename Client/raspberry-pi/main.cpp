@@ -29,15 +29,45 @@ void updateDisplay()
         {255, 255, 255},
     };
 
+    int pixelOffset = 0;
+    int bitOffset = 0;
+    const int numberOfBitColors = 3;
+    const int colorMask = 0b11111111 >> (8 - numberOfBitColors);
+    const int payload_size = display_payload.size();
+
     for (int i = 0; i < display_payload.size(); i++)
     {
-        int colorId = display_payload[i] - 'a';
-        int *color = colors[colorId];
+        int byte = display_payload[i];
 
-        int x = i % 64;
-        int y = i / 64;
+        while (bitOffset + numberOfBitColors <= 8)
+        {
+            int color = (byte >> bitOffset) & colorMask;
+            int *colorData = colors[color];
 
-        offscreen->SetPixel(x, y, color[0], color[1], color[2]);
+            offscreen->SetPixel(pixelOffset % 64, pixelOffset / 64, colorData[0], colorData[1], colorData[2]);
+
+            pixelOffset++;
+            bitOffset += numberOfBitColors;
+        }
+
+        bitOffset %= 8;
+
+        if (bitOffset != 0)
+        {
+            int nextByte = payload_size < (i + 1) ? 0 : display_payload[i + 1];
+            int bitsInCurrentByte = 8 - bitOffset;
+            int bitsInNextByte = numberOfBitColors - bitsInCurrentByte;
+
+            int nextByteColor = (nextByte & colorMask & (colorMask >> bitsInCurrentByte)) << bitsInCurrentByte;
+
+            int color = (nextByteColor | (byte >> bitOffset)) & colorMask;
+            int *colorData = colors[color];
+
+            offscreen->SetPixel(pixelOffset % 64, pixelOffset / 64, colorData[0], colorData[1], colorData[2]);
+
+            pixelOffset++;
+            bitOffset = (bitOffset + numberOfBitColors) % 8;
+        }
     }
 
     offscreen = matrix->SwapOnVSync(offscreen);
@@ -97,8 +127,6 @@ void ini(int width, int height)
     offscreen = matrix->CreateFrameCanvas();
 
     offscreen->SetBrightness(100);
-    // offscreen->Fill(255, 255, 255);
-    // offscreen = matrix->SwapOnVSync(offscreen);
 }
 
 int main()
