@@ -1,6 +1,7 @@
 #include "Display.cpp"
 #include "Font.cpp"
 #include <string>
+#include <cmath>
 
 enum Button
 {
@@ -58,18 +59,27 @@ public:
     }
   }
 
-  char *getDisplayBuffer()
+  std::vector<char> getDisplayBuffer()
   {
-    int width = display.getWidth();
-    int height = display.getHeight();
-    char *pixels = new char[width * height + 1];
+    int totalPixels = display.getWidth() * display.getHeight();
+    Color* displayPixels = display.pixels;
 
-    for (int i = 0; i < height * width; i++)
-    {
-      pixels[i] = 'a' + display.pixels[i];
+    int numberOfBitColors = 3;
+    int colorMask = 0b11111111 >> (8 - numberOfBitColors);
+    int size = ceil((totalPixels * numberOfBitColors) / 8.0);
+    std::vector<char> pixels(size, 0);
+
+    for(int i = 0; i < totalPixels; i++) {
+      int byteIndex = (i * numberOfBitColors) / 8;
+      int bitOffset = (i * numberOfBitColors) % 8;
+
+      if(bitOffset <= 5) {
+        pixels[byteIndex] |= (displayPixels[i] & colorMask) << bitOffset;
+      } else {
+        pixels[byteIndex] |= (displayPixels[i] & colorMask) << bitOffset;
+        pixels[byteIndex + 1] |= (displayPixels[i] & colorMask) >> (8 - bitOffset);
+      }
     }
-
-    pixels[width * height] = '\0';
 
     return pixels;
   }

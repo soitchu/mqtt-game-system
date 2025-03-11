@@ -82,28 +82,28 @@ public:
     // Wrap around the screen
     if (snakePositionX < 0)
     {
-      snakePositionX = Snake::display->getWidth() - 1;
+      snakePositionX = Snake::display.getWidth() - 1;
     }
     else
     {
-      snakePositionX = snakePositionX % Snake::display->getWidth();
+      snakePositionX = snakePositionX % Snake::display.getWidth();
     }
 
     if (snakePositionY < 0)
     {
-      snakePositionY = Snake::display->getHeight() - 1;
+      snakePositionY = Snake::display.getHeight() - 1;
     }
     else
     {
-      snakePositionY = snakePositionY % Snake::display->getHeight();
+      snakePositionY = snakePositionY % Snake::display.getHeight();
     }
   }
 
   void eatFood()
   {
     // Generate a new food position
-    foodPosition.x = rand() % Snake::display->getWidth();
-    foodPosition.y = rand() % Snake::display->getHeight();
+    foodPosition.x = rand() % Snake::display.getWidth();
+    foodPosition.y = rand() % Snake::display.getHeight();
 
     // Increase the score
     this->score++;
@@ -114,7 +114,7 @@ public:
 
   void tick()
   {
-    Snake::display->clear(Color::BLACK);
+    Snake::display.clear(Color::BLACK);
 
     Position snakePosition = snakePositions.getTailItem();
     int snakePositionX = snakePosition.x;
@@ -134,8 +134,8 @@ public:
     {
 
       snakePositions.display();
-      snakePositions.changeCapacity(1, {Snake::display->getWidth() / 2,
-                                        Snake::display->getHeight() / 2});
+      snakePositions.changeCapacity(1, {Snake::display.getWidth() / 2,
+                                        Snake::display.getHeight() / 2});
       score = 0;
     }
 
@@ -151,10 +151,10 @@ public:
     for (int i = 0; i < snakePositions.buffer.size(); i++)
     {
       Position snakePart = snakePositions.buffer[i];
-      Snake::display->setPixel(snakePart, Color::GREEN);
+      Snake::display.setPixel(snakePart, Color::GREEN);
     }
 
-    Snake::display->setPixel(foodPosition, Color::RED);
+    Snake::display.setPixel(foodPosition, Color::RED);
   }
 
   void buttonPressed(Player player, Button button)

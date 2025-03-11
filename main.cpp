@@ -1,12 +1,12 @@
 #include <iostream>
-#include "./Games/Tron.cpp"
+#include "./Games/Snake.cpp"
 #include <mqtt/async_client.h>
 
 const std::string SERVER_ADDRESS = "tcp://localhost:1883";
 const std::string CLIENT_ID = "async_client_cpp";
 const std::string TOPIC = "test/topic";
 
-Tron game = Tron(64, 64);
+Snake game = Snake(64, 64);
 mqtt::async_client client(SERVER_ADDRESS, CLIENT_ID);
 
 void setInterval(std::function<void()> func, int interval)
@@ -49,7 +49,7 @@ public:
   void message_arrived(mqtt::const_message_ptr msg) override
   {
     if(game.isGameOver) {
-      game = Tron(64, 64);
+      game = Snake(64, 64);
       return;
     }
     std::string payload = msg->to_string();
@@ -81,8 +81,8 @@ int main()
             }
             game.tick();
 
-            const char *payload = game.getDisplayBuffer();
-            mqtt::message_ptr msg = mqtt::make_message(TOPIC, payload);
+            const auto payload = game.getDisplayBuffer();
+            mqtt::message_ptr msg = mqtt::make_message(TOPIC, payload.data(), payload.size(), 0, false);
 
             if (client.is_connected())
             {
