@@ -10,8 +10,8 @@
 <canvas id="canvas" width="64" height="64"></canvas>
 
 <script>
-  const client = mqtt.connect("http://localhost:9001", {
-    // const client = mqtt.connect("http://34.105.9.147:9001", {
+  // const client = mqtt.connect("http://localhost:9001", {
+  const client = mqtt.connect("http://34.105.9.147:9001", {
     forceNativeWebSocket: true,
     username: "test",
     password: "test",
