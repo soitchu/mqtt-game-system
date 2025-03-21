@@ -89,7 +89,7 @@ public:
       for (int j = y; j < y + size && i < Display::height; j++)
       {
 
-        setPixel({j, i}, color);
+        setPixel({i, j}, color);
       }
     }
   }

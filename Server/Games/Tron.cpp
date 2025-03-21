@@ -11,18 +11,36 @@ enum Direction
   RIGHT,
 };
 
+enum Result
+{
+  DRAW,
+  PLAYER_1,
+  PLAYER_2,
+};
+
 class Tron : public Game
 {
 public:
-  int score = 0;
+  Result result = Result::DRAW;
   std::vector<Position> playerPositions[2] = {{}, {}};
-  Direction lastDirections[2] = {Direction::LEFT, Direction::UP};
-  Direction directions[2] = {Direction::LEFT, Direction::UP};
+  Direction lastDirections[2] = {Direction::RIGHT, Direction::LEFT};
+  Direction directions[2] = {Direction::RIGHT, Direction::LEFT};
 
   Tron(int width, int height) : Game(width, height)
   {
-    playerPositions[0].push_back({width / 4, height / 2});
-    playerPositions[1].push_back({3 * width / 4, height / 2});
+    init();
+  }
+
+  void init() override
+  {
+    isGameOver = false;
+    result = Result::DRAW;
+    playerPositions[0].clear();
+    playerPositions[1].clear();
+    playerPositions[0].push_back({display.getWidth() / 4, display.getHeight() / 2});
+    playerPositions[1].push_back({3 * display.getWidth() / 4, display.getHeight() / 2});
+    directions[0] = Direction::RIGHT;
+    directions[1] = Direction::LEFT;
   }
 
   void updatePosition(int &snakePositionX, int &snakePositionY, Direction direction)
@@ -44,34 +62,26 @@ public:
     {
       snakePositionX++;
     }
-
-    // Wrap around the screen
-    if (snakePositionX < 0)
-    {
-      snakePositionX = display.getWidth() - 1;
-    }
-    else
-    {
-      snakePositionX = snakePositionX % display.getWidth();
-    }
-
-    if (snakePositionY < 0)
-    {
-      snakePositionY = display.getHeight() - 1;
-    }
-    else
-    {
-      snakePositionY = snakePositionY % display.getHeight();
-    }
   }
 
-  void tick()
+  void tick() override
   {
     display.clear(Color::BLACK);
 
     if (isGameOver)
     {
-      drawText({display.getWidth() / 2 - 20, display.getHeight() / 2}, "GAME OVER");
+      if (result == Result::PLAYER_1)
+      {
+        drawTextCentered("PLAYER 1 WINS");
+      }
+      else if (result == Result::PLAYER_2)
+      {
+        drawTextCentered("PLAYER 2 WINS");
+      }
+      else
+      {
+        drawTextCentered("DRAW");
+      }
       return;
     }
 
@@ -106,37 +116,52 @@ public:
     // FIXME: This is a draw
     if (playerPositions[0].back() == playerPositions[1].back())
     {
-      isGameOver = true;
+      collided[0] = true;
+      collided[1] = true;
     }
-
-    for (int i = 0; i < 2; i++)
+    else
     {
-      auto &playerPosition = playerPositions[i];
-      
-      // Check if the snake has collided with itself
-      for(int j = 0; j < playerPosition.size() - 1; j++)
+      for (int i = 0; i < 2; i++)
       {
-        if(playerPosition[j] == playerPosition.back())
+        auto &playerPosition = playerPositions[i];
+
+        if (
+            playerPosition.back().x < 0 ||
+            playerPosition.back().x >= display.getWidth() ||
+            playerPosition.back().y < 0 ||
+            playerPosition.back().y >= display.getHeight())
         {
           collided[i] = true;
-          break;
+          continue;
         }
-      }
 
-      if(collided[i]) break;
-
-      for(int j = 0; j < 2; j++) {
-        if(i == j) continue;
-
-        auto &otherPlayerPosition = playerPositions[j];
-
-        for(int k = 0; k < otherPlayerPosition.size(); k++)
+        // Check if the snake has collided with itself
+        for (int j = 0; j < playerPosition.size() - 1; j++)
         {
-          if(otherPlayerPosition[k] == playerPosition.back())
+          if (playerPosition[j] == playerPosition.back())
           {
-            std::cout << i << "collided with " << j << std::endl;
             collided[i] = true;
             break;
+          }
+        }
+
+        if (collided[i])
+          break;
+
+        for (int j = 0; j < 2; j++)
+        {
+          if (i == j)
+            continue;
+
+          auto &otherPlayerPosition = playerPositions[j];
+
+          for (int k = 0; k < otherPlayerPosition.size(); k++)
+          {
+            if (otherPlayerPosition[k] == playerPosition.back())
+            {
+              collided[i] = true;
+              break;
+            }
           }
         }
       }
@@ -145,11 +170,23 @@ public:
     // FIXME: Can possibly be a draw
     if (collided[0] || collided[1])
     {
+      if (collided[0] && collided[1])
+      {
+        result = Result::DRAW;
+      }
+      else if (collided[0])
+      {
+        result = Result::PLAYER_2;
+      }
+      else
+      {
+        result = Result::PLAYER_1;
+      }
       isGameOver = true;
     }
   }
 
-  void buttonPressed(Player player, Button button)
+  void buttonPressed(Player player, Button button) override
   {
     // We just have one player in this game, so we ignore the player parameter
     unordered_map<Direction, Direction> directionClockWiseMap = {
@@ -203,5 +240,4 @@ public:
       directions[player] = newDirection;
     }
   }
-
 };

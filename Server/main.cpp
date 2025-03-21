@@ -1,12 +1,15 @@
 #include <iostream>
-#include "./Games/Snake.cpp"
+#include "./Games/Tron.cpp"
+#include "./Games/StartScreen.cpp"
 #include <mqtt/async_client.h>
 
 const std::string SERVER_ADDRESS = "tcp://localhost:1883";
 const std::string CLIENT_ID = "async_client_cpp";
 const std::string TOPIC = "test/topic";
 
-Snake game = Snake(64, 64);
+Game *startScreen = new StartScreen(64, 64);
+Game *game = new Tron(64, 64);
+
 mqtt::async_client client(SERVER_ADDRESS, CLIENT_ID);
 
 void setInterval(std::function<void()> func, int interval)
@@ -48,21 +51,18 @@ public:
 
   void message_arrived(mqtt::const_message_ptr msg) override
   {
-    if(game.isGameOver) {
-      game = Snake(64, 64);
-      return;
-    }
     std::string payload = msg->to_string();
     std::string topic = msg->get_topic();
     Button pressedButton = (Button)(payload[0] - '1');
+    Game *g = !startScreen->isGameOver ? startScreen : game;
 
     if (topic == "input_1")
     {
-      game.buttonPressed(Player::ONE, pressedButton);
+      g->buttonPressed(Player::ONE, pressedButton);
     }
     else if (topic == "input_2")
     {
-      game.buttonPressed(Player::TWO, pressedButton);
+      g->buttonPressed(Player::TWO, pressedButton);
     }
   }
 };
@@ -75,13 +75,23 @@ int main()
   std::thread game_thread = std::thread(
       setInterval, []()
       {
-
-            if (game.isGameOver) {
-              return;
+            if (!startScreen->isGameOver) {
+              startScreen->tick();
+              
+              if (startScreen->isGameOver) {
+                game->init();
+              }
             }
-            game.tick();
+            else {
+              game->tick();
 
-            const auto payload = game.getDisplayBuffer();
+              if (game->isGameOver) {
+                startScreen->init();
+              }
+            }
+
+
+            const auto payload = !startScreen->isGameOver ? startScreen->getDisplayBuffer() : game->getDisplayBuffer();
             mqtt::message_ptr msg = mqtt::make_message(TOPIC, payload.data(), payload.size(), 0, false);
 
             if (client.is_connected())

@@ -1,3 +1,6 @@
+#ifndef GAME
+#define GAME
+
 #include "Display.cpp"
 #include "Font.cpp"
 #include <string>
@@ -28,6 +31,7 @@ public:
 
   virtual void buttonPressed(Player player, Button button) = 0;
   virtual void tick() = 0;
+  virtual void init() = 0;
 
   Game(int height, int width)
   {
@@ -59,6 +63,14 @@ public:
     }
   }
 
+  void drawTextCentered(std::string text, Position offset = {0, 0})
+  {
+    int x = (display.getWidth() - text.length() * 4) / 2;
+    int y = (display.getHeight() - 5)/ 2;
+
+    drawText({x + offset.x, y + offset.y}, text);
+  }
+
   std::vector<char> getDisplayBuffer()
   {
     int totalPixels = display.getWidth() * display.getHeight();
@@ -84,3 +96,5 @@ public:
     return pixels;
   }
 };
+
+#endif 

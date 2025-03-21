@@ -55,7 +55,17 @@ public:
 
   Snake(int width, int height) : Game(width, height)
   {
-    snakePositions.changeCapacity(score + 1, {width / 2, height / 2});
+    init();
+  }
+
+  void init() override
+  {
+    isGameOver = false;
+    direction = Direction::RIGHT;
+    lastDirection = Direction::RIGHT;
+    score = 0;
+    snakePositions.changeCapacity(1, {Snake::display.getWidth() / 2,
+                                      Snake::display.getHeight() / 2});
   }
 
   void updatePosition(int &snakePositionX, int &snakePositionY)
